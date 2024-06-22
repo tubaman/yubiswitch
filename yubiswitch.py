@@ -27,8 +27,15 @@ class YubiKey:
         '''
         if self.is_active():
             return False
-        with open('/sys/bus/usb/drivers/usbhid/bind', 'w') as fd:
-            fd.write(self.dev_id)
+        try:
+            with open('/sys/bus/usb/drivers/usbhid/bind', 'w') as fd:
+                fd.write(self.dev_id)
+        except IOError as e:
+            if e.errno == 19:
+                # this is fine... one of the subdevices isn't activatable
+                return False
+            else:
+                raise
         return True
 
     def deactivate(self):
